@@ -274,7 +274,11 @@
       } else {
         isActive = activeSet.has(opt);
       }
-      var chip = el("button", { class: "chip" + (isActive ? " chip-active" : ""), onclick: function () { onToggle(opt); } });
+      var chip = el("button", { class: "chip" + (isActive ? " chip-active" : "") });
+      chip.addEventListener("click", function () {
+        onToggle(opt);
+        chip.classList.toggle("chip-active");
+      });
       if (impactMeta) {
         chip.appendChild(el("span", { class: "dot", style: "background:" + impactMeta[idx].color }, []));
       }
@@ -412,7 +416,7 @@
   // ---------- Individual one-sheet ----------
   function renderSheet(vendorId) {
     var panelId = "sheet-" + vendorId;
-    var panel = document.getElementById(panelId);
+    var panel = document.getElementById("panel-" + panelId);
     if (!panel) return;
     panel.innerHTML = "";
 
@@ -529,7 +533,7 @@
     container.appendChild(el("section", { class: "panel", id: "panel-sheets" }, []));
     VENDORS.forEach(function (v) {
       container.appendChild(el("section", { class: "panel", id: "panel-" + v.id }, []));
-      container.appendChild(el("section", { class: "panel", id: "sheet-" + v.id }, []));
+      container.appendChild(el("section", { class: "panel", id: "panel-sheet-" + v.id }, []));
     });
   }
 
@@ -548,6 +552,16 @@
     var updatedEl = document.getElementById("updated-label");
     if (periodEl) periodEl.textContent = d.toLocaleString("en-US", { month: "long", year: "numeric" });
     if (updatedEl) updatedEl.textContent = "Updated " + d.toLocaleString("en-US", { month: "short", day: "numeric" });
+  }
+
+  function syncTopbarHeight() {
+    var topbar = document.querySelector(".topbar");
+    if (!topbar) return;
+    function set() {
+      document.documentElement.style.setProperty("--topbar-h", topbar.offsetHeight + "px");
+    }
+    set();
+    window.addEventListener("resize", set);
   }
 
   function initBackToTop() {
@@ -576,6 +590,7 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     initHeaderMeta();
+    syncTopbarHeight();
     buildNav();
     buildPanels();
     renderHome();
