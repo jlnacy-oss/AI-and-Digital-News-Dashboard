@@ -1,0 +1,35 @@
+name: Weekly data refresh
+
+on:
+  schedule:
+    # Every Monday 09:00 UTC. Adjust as you like — cron is UTC.
+    - cron: "0 9 * * 1"
+  workflow_dispatch: {} # lets you trigger it manually from the Actions tab
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run refresh script
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/refresh-data.mjs
+
+      - name: Validate data.js
+        run: node scripts/validate-data.mjs
+
+      - name: Commit if changed
+        run: |
+          git config user.name "eap-refresh-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data.js
+          git diff --cached --quiet || git commit -m "Weekly data refresh $(date -u +%Y-%m-%d)"
+          git push
